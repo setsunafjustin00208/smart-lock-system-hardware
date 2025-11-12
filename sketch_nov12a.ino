@@ -8,12 +8,13 @@
 #include <WiFiClient.h>
 
 // WiFi credentials
-const char* ssid = "GlobeAtHome_5B8F1_2.4";
-const char* password = "42D54DFF";
+#include "credentials.h"
+const char* ssid = WIFI_SSID;
+const char* password = WIFI_PASSWORD;
 
 // Server configuration
-const char* serverURL = "http://192.168.254.110:8080";
-const char* hardwareId = "ESP32_TEST_001";
+const char* serverURL = SERVER_URL;
+const char* hardwareId = HARDWARE_ID;
 
 #define LED_PIN 2
 
