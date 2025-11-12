@@ -1,0 +1,9 @@
+# Credentials file - contains sensitive information
+credentials.h
+
+# Arduino IDE files
+*.hex
+*.elf
+*.map
+/ai-assistant/
+/.history/
