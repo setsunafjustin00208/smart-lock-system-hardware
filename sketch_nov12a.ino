@@ -37,6 +37,19 @@ const unsigned long commandInterval = 1000; // 5 seconds
 // Lock state
 bool isLocked = true;
 
+// Function declarations
+void sendHeartbeat();
+void sendStatusUpdate();
+void checkForCommands();
+String extractCommandId(String response);
+void confirmCommand(String commandId, String status);
+void lockDoor();
+void unlockDoor();
+void updateStatusLED();
+void handleSerialCommands();
+void printStatus();
+void runFullTest();
+
 void setup() {
   Serial.begin(115200);
   
@@ -232,7 +245,6 @@ void updateStatusLED() {
     ledState = !ledState;
     digitalWrite(LED_PIN2, ledState ? LOW : HIGH);
     ledBlinkTime = currentTime;
-  }
   }
 }
 
