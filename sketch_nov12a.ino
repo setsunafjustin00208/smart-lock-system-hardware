@@ -8,14 +8,16 @@
 #include <WiFiClient.h>
 
 // WiFi credentials
-const char* ssid = "GlobeAtHome_5B8F1_2.4";
-const char* password = "42D54DFF";
+#include "credentials.h"
+const char* ssid = WIFI_SSID;
+const char* password = WIFI_PASSWORD;
 
 // Server configuration
-const char* serverURL = "http://192.168.254.110:8080";
-const char* hardwareId = "ESP32_TEST_001";
+const char* serverURL = SERVER_URL;
+const char* hardwareId = HARDWARE_ID;
 
-#define LED_PIN 2
+#define LED_PIN 2        // Built-in LED (GPIO2)
+#define LED_PIN2 16      // Second built-in LED (GPIO16)
 
 // Connection status
 bool wifiConnected = false;
@@ -26,6 +28,8 @@ unsigned long lastHeartbeat = 0;
 unsigned long lastStatusUpdate = 0;
 unsigned long lastCommandCheck = 0;
 unsigned long lastLEDUpdate = 0;
+unsigned long ledBlinkTime = 0;
+bool ledState = false;
 const unsigned long heartbeatInterval = 30000; // 30 seconds
 const unsigned long statusInterval = 30000; // 1 minute
 const unsigned long commandInterval = 1000; // 5 seconds
@@ -33,11 +37,26 @@ const unsigned long commandInterval = 1000; // 5 seconds
 // Lock state
 bool isLocked = true;
 
+// Function declarations
+void sendHeartbeat();
+void sendStatusUpdate();
+void checkForCommands();
+String extractCommandId(String response);
+void confirmCommand(String commandId, String status);
+void lockDoor();
+void unlockDoor();
+void updateStatusLED();
+void handleSerialCommands();
+void printStatus();
+void runFullTest();
+
 void setup() {
   Serial.begin(115200);
   
   pinMode(LED_PIN, OUTPUT);
-  digitalWrite(LED_PIN, HIGH); // LED OFF initially
+  pinMode(LED_PIN2, OUTPUT);
+  digitalWrite(LED_PIN, HIGH);  // LED OFF initially
+  digitalWrite(LED_PIN2, HIGH); // LED OFF initially
   
   WiFi.begin(ssid, password);
   Serial.print("Connecting to WiFi");
@@ -211,13 +230,21 @@ void unlockDoor() {
 }
 
 void updateStatusLED() {
-  if (millis() - lastLEDUpdate > 2000) {
+  unsigned long currentTime = millis();
+  if (currentTime - lastLEDUpdate > 2000) {
     if (wifiConnected && backendConnected) {
       digitalWrite(LED_PIN, LOW); // LED ON = all good
     } else {
       digitalWrite(LED_PIN, !digitalRead(LED_PIN)); // Blink = issues
     }
-    lastLEDUpdate = millis();
+    lastLEDUpdate = currentTime;
+  }
+  
+  // Lock status on LED_PIN2 - Slow blink = LOCKED, Fast blink = UNLOCKED
+  if (currentTime - ledBlinkTime > (isLocked ? 1000 : 300)) {
+    ledState = !ledState;
+    digitalWrite(LED_PIN2, ledState ? LOW : HIGH);
+    ledBlinkTime = currentTime;
   }
 }
 
